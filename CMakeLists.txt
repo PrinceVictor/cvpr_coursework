@@ -12,11 +12,11 @@ FIND_PACKAGE(OpenCV REQUIRED)
 INCLUDE_DIRECTORIES(${INCLUDE_PATH})
 INCLUDE_DIRECTORIES(${OpenCV_INCLUDE_DIRS})
 
-set(SRC_PATH src)
+set(SRC_PATH src/calib)
 set(INC_PATH inc)
 ADD_SUBDIRECTORY(${SRC_PATH})
 
 #ADD_LIBRARY(cvpr SHARED ${LIBCVPR_SRC})
 INCLUDE_DIRECTORIES(${INC_PATH})
-add_executable(camera_calib ${SRC_PATH}/calib.cpp)
+add_executable(camera_calib ${SRC_PATH}/run_calib.cc ${SRC_PATH}/calib.cc)
 target_link_libraries(camera_calib ${OpenCV_LIBS})

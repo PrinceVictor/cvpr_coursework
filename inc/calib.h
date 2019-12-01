@@ -5,7 +5,9 @@
 
 namespace CALIB {
 
-
+void get_images(const std::string image_path,
+                std::vector<std::string>& image_list,
+                const int max_length);
 
 }
 
