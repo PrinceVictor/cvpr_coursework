@@ -1,2 +1,9 @@
 #CMakeLists:
 *.user
+
+#build:
+build/
+
+#log:
+log/
+
