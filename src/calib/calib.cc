@@ -22,7 +22,7 @@ Calibration::Calibration(){
   LOG_OUTPUT("default constructor function!!!");
 
   _chessis_board_image_path = std::make_shared<std::string>
-      ("/home/victor/Darling/course/cvpr/Assignment1/Camera_A/Mode1");
+      ("/home/victor/Darling/course/cvpr/Assignment1/Camera_A/Mode1_temp");
 
 }
 
@@ -36,6 +36,8 @@ Calibration::Calibration(const std::string& image_path){
   _chessis_board_image_path = std::make_shared<std::string>(image_path);
 
   set_board_size();
+
+  _must_undistort = true;
 
   LOG_OUTPUT("it gets the chessis board "
               "image path: __ {} __", image_path.c_str());
@@ -103,16 +105,24 @@ inline void Calibration::change_image_path(const std::string& image_path){
 std::vector<std::vector<cv::Point2f>> Calibration::get_chessis_board_corners(){
 
   _image_corners = std::make_shared<std::vector<std::vector<cv::Point2f>>>();
+  _object_corners = std::make_shared<std::vector<std::vector<cv::Point3f>>>();
+
+  std::vector<cv::Point3f> object_corners = set_object_corners();
 
   std::string head_path = *_chessis_board_image_path;
 
-  for(int i=0; i<1; i++){
+  cv::Mat image;
+
+  LOG_OUTPUT("image list size {}", _image_list->size());
+
+  for(int i=0; i< _image_list->size(); i++){
+
     std::string full_path = head_path + '/' + (*_image_list)[i];
 
     //get the gray scale image
-    cv::Mat image = cv::imread(full_path, cv::IMREAD_UNCHANGED);
-    std::printf("\nimage rows %d, cols %d, chanl %d, type %d",
-                image.rows, image.cols, image.channels(), image.type());
+    image = cv::imread(full_path, cv::IMREAD_UNCHANGED);
+//    LOG_OUTPUT("\nimage rows {}, cols {}, chanl {}, type {}",
+//                image.rows, image.cols, image.channels(), image.type());
 
     std::vector<cv::Point2f> image_corners;
 
@@ -134,10 +144,15 @@ std::vector<std::vector<cv::Point2f>> Calibration::get_chessis_board_corners(){
                                       0.1));
 
     cv::drawChessboardCorners(image, *_board_size, image_corners, is_found);
-    LOG_OUTPUT("corners size: %ld", image_corners.size());
+//    LOG_OUTPUT("corners size: {}", image_corners.size());
+
+    _image_size = std::make_shared<cv::Size>(image.size());
 
     if(image_corners.size() == _board_size->area()){
+
       _image_corners->emplace_back(image_corners);
+      _object_corners->emplace_back(object_corners);
+
     }
 
 //    cv::namedWindow("test1", cv::WINDOW_NORMAL);
@@ -147,18 +162,193 @@ std::vector<std::vector<cv::Point2f>> Calibration::get_chessis_board_corners(){
 //    cv::imshow("test2", image_copy);
 
 //    cv::waitKey(0);
-
-    return *_image_corners;
   }
+
+//  cv::destroyAllWindows();
+  LOG_OUTPUT("image rows {}, cols {}, chanl {}, type {}",
+             image.rows, image.cols, image.channels(), image.type());
+
+  return *_image_corners;
+}
+
+double Calibration::camera_calibrate(){
+
+  if(_image_corners->size() == 0){
+
+    LOG_OUTPUT("NO IMAGE CONCERS ---> Computing Failed!!!");
+    return 0;
+  }
+
+  _must_undistort = true;
+
+  std::vector<cv::Mat> R_list, T_list;
+
+  return cv::calibrateCamera(*_object_corners,
+                             *_image_corners,
+                             *_image_size,
+                             _camera_K_matrix,
+                             _distort_coeff,
+                             R_list,
+                             T_list);
 }
 
 std::vector<cv::Point3f> Calibration::set_object_corners(const float &delat_x,
                                                          const float &delat_y){
-  _object_corners.reset();
+  std::vector<cv::Point3f> object_corners;
+  for(int i=0; i < _board_size->height; i++){
+    for(int j=0; j < _board_size->width; j++){
+
+      object_corners.emplace_back(cv::Point3f(i*delat_y, j*delat_x, 0.0));
+
+    }
+  }
+
+  return object_corners;
+}
+
+void Calibration::image_undistort(){
+
+  if(_image_corners->size() == 0){
+    LOG_OUTPUT("get none sets of image corners and object corners");
+  }
+  else{
+    LOG_OUTPUT("sets of image corners and object corners {}", _image_corners->size());
+  }
+
+
+  cv::Rect* crop_ROI = new cv::Rect;
+
+  cv::Mat new_camera_K_matrix;
+
+  new_camera_K_matrix = cv::getOptimalNewCameraMatrix(_camera_K_matrix,
+                                                      _distort_coeff,
+                                                      *_image_size,
+                                                      1,
+                                                      *_image_size,
+                                                      crop_ROI,
+                                                      true);
+  cv::Size input_size;
+  cv::Mat new_K;
+  if(crop_ROI->width && crop_ROI->height){
+    new_K = new_camera_K_matrix;
+  }
+  else{
+    input_size = *_image_size;
+  }
+
+  cv::Mat map1, map2;
+  cv::initUndistortRectifyMap(_camera_K_matrix,
+                              _distort_coeff,
+                              cv::Mat(),
+                              new_K,
+                              *_image_size,
+                              CV_32FC1,
+                              map1,
+                              map2);
+
+  LOG_OUTPUT("ROI {} {} {} {}", crop_ROI->height,
+                                crop_ROI->width,
+                                crop_ROI->x,
+                                crop_ROI->y);
+
+  std::string head_path = *_chessis_board_image_path;
+
+  for(auto it : *_image_list){
+
+    std::string image_path = head_path + '/' + it;
+    cv::Mat image = cv::imread(image_path);
+
+    cv::Mat undistort_image;
+    cv::remap(image, undistort_image, map1, map2, cv::INTER_LINEAR);
+
+//    cv::undistort(image,
+//                  undistort_image,
+//                  _camera_K_matrix,
+//                  _distort_coeff,
+//                  new_camera_K_matrix);
+
+    cv::namedWindow("raw_image", cv::WINDOW_NORMAL);
+    cv::imshow("raw_image", image);
+
+    cv::namedWindow("undistorted_image", cv::WINDOW_NORMAL);
+
+//    cv::Mat roi =undistort_image(*crop_ROI);
+//    undistort_image.copyTo(roi, *crop_ROI);
+
+    if(crop_ROI->height && crop_ROI->width){
+      cv::imshow("undistorted_image", undistort_image(*crop_ROI));
+    }
+    else{
+      cv::imshow("undistorted_image", undistort_image);
+    }
+
+      cv::waitKey(0);
+  }
+
+  cv::destroyAllWindows();
+
+  delete crop_ROI;
+
+  return ;
+
+}
+
+void Calibration::show_parameters(){
+
+  LOG_OUTPUT("matrix K: {}x{}", _camera_K_matrix.rows,
+                                _camera_K_matrix.cols);
+
+  LOG_OUTPUT("matrix K: {:<9.2f} {:<9.2f} {:<9.2f}", _camera_K_matrix.at<double>(0,0),
+                                                     _camera_K_matrix.at<double>(0,1),
+                                                     _camera_K_matrix.at<double>(0,2));
+  LOG_OUTPUT("          {:<9.2f} {:<9.2f} {:<9.2f}", _camera_K_matrix.at<double>(1,0),
+                                                     _camera_K_matrix.at<double>(1,1),
+                                                     _camera_K_matrix.at<double>(1,2));
+  LOG_OUTPUT("          {:<9.2f} {:<9.2f} {:<9.2f}", _camera_K_matrix.at<double>(2,0),
+                                                     _camera_K_matrix.at<double>(2,1),
+                                                     _camera_K_matrix.at<double>(2,2));
+
+  LOG_OUTPUT("distort_coeff: {}x{}", _distort_coeff.rows,
+                                     _distort_coeff.cols);
+
+  LOG_OUTPUT("distort_coeff: k1: {:.2f}", _distort_coeff.at<double>(0,0));
+  LOG_OUTPUT("               k2: {:.2f}", _distort_coeff.at<double>(0,1));
+  LOG_OUTPUT("               p1: {:.2f}", _distort_coeff.at<double>(0,2));
+  LOG_OUTPUT("               p2: {:.2f}", _distort_coeff.at<double>(0,3));
+  LOG_OUTPUT("               p3: {:.2f}", _distort_coeff.at<double>(0,4));
+
+}
+
+void Calibration::save_parameters(const std::string& path,
+                                  const std::string& name){
+
+  std::string para_name = path + '/' + name;
+
+  _parameter_write = std::make_shared<cv::FileStorage>(para_name.c_str(),
+                                                       cv::FileStorage::WRITE);
+
+  *_parameter_write << "calibrated_parameters_file" << "Write_by_Hongbin_Zhou";
+
+  std::time_t time_now;
+  time_now = std::time(&time_now);
+
+  *_parameter_write << "image_files" << std::asctime(std::localtime(&time_now)) ;
+
+  *_parameter_write << "Date" << *_chessis_board_image_path;
+
+  *_parameter_write << "K_intrinsics_matrix" << _camera_K_matrix
+                    << "distorted_coeffients" << _distort_coeff;
+
+
+  _parameter_write->release();
+
+  LOG_OUTPUT("write parameters in to {}", para_name.c_str());
 }
 
 inline void Calibration::set_board_size(const int& point1, const int& point2){
+
   _board_size = std::make_shared<cv::Size>(point1, point2);
+  LOG_OUTPUT("set board size width {} height {}", _board_size->width, _board_size->height);
 }
 
 }

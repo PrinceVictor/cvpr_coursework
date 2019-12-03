@@ -5,6 +5,7 @@
 #include <iostream>
 #include <cstring>
 #include <opencv2/opencv.hpp>
+#include <ctime>
 
 #include <log.h>
 #include <calib.h>
@@ -38,7 +39,27 @@ int main(int argc, char **argv){
 
   std::shared_ptr<Calibration>Calib(new Calibration(Camera_A));
 
-//  Calib->get_chessis_board_corners();
+  LOG_OUTPUT("get_chessis_board_corners");
+
+  Calib->get_chessis_board_corners();
+
+  LOG_OUTPUT("camera_calibrate");
+
+  Calib->camera_calibrate();
+
+  LOG_OUTPUT("image_undistort");
+
+  Calib->image_undistort();
+
+  LOG_OUTPUT("show_parameters");
+
+  Calib->show_parameters();
+
+  LOG_OUTPUT("save_parameters");
+
+  std::string para_save = "/home/victor/Darling/course/cvpr/cvpr_coursework/cvpr_coursecode/para";
+  std::string para_name = "parameter.xml";
+  Calib->save_parameters(para_save, para_name);
 
   google::ShutdownGoogleLogging();
 

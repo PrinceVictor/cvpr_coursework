@@ -41,12 +41,20 @@ public:
 
   std::vector<std::vector<cv::Point2f>> get_chessis_board_corners();
 
-  std::vector<cv::Point3f> set_object_corners(const float& delat_x = 0.1f,
-                                              const float& delat_y = 0.1f);
+  std::vector<cv::Point3f> set_object_corners(const float& delat_x = 100.0f,
+                                              const float& delat_y = 100.0f);
 
   void set_board_size(const int& point1 = 8,
                       const int& point2 = 6);
 
+  double camera_calibrate();
+
+  void image_undistort();
+
+  void show_parameters();
+
+  void save_parameters(const std::string& path,
+                       const std::string& name);
 
 private:
 
@@ -56,13 +64,19 @@ private:
 
   std::shared_ptr<cv::Size> _board_size;
 
+  std::shared_ptr<cv::Size> _image_size;
+
   std::shared_ptr<std::vector<std::vector<cv::Point2f>>> _image_corners;
 
-  std::shared_ptr<std::vector<cv::Point3f>> _object_corners;
+  std::shared_ptr<std::vector<std::vector<cv::Point3f>>> _object_corners;
 
+  std::shared_ptr<cv::FileStorage> _parameter_write;
 
+  cv::Mat _camera_K_matrix;
 
+  cv::Mat _distort_coeff;
 
+  bool _must_undistort;
 
 };
 

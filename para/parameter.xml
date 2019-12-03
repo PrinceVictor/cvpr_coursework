@@ -1,0 +1,21 @@
+<?xml version="1.0"?>
+<opencv_storage>
+<calibrated_parameters_file>Write_by_Hongbin_Zhou</calibrated_parameters_file>
+<image_files>"Tue Dec  3 20:29:53 2019&#x0a;"</image_files>
+<Date>/home/victor/Darling/course/cvpr/Assignment1/Camera_A/Mode1</Date>
+<K_intrinsics_matrix type_id="opencv-matrix">
+  <rows>3</rows>
+  <cols>3</cols>
+  <dt>d</dt>
+  <data>
+    1.4942264293722637e+03 0. 1.2975312901700863e+03 0.
+    1.4810610908949770e+03 1.0021855642316544e+03 0. 0. 1.</data></K_intrinsics_matrix>
+<distorted_coeffients type_id="opencv-matrix">
+  <rows>1</rows>
+  <cols>5</cols>
+  <dt>d</dt>
+  <data>
+    -2.5841575594394495e-01 4.0652985612441198e-02
+    9.1204318986516479e-04 -9.0625425630162446e-04
+    -2.1622077944064306e-03</data></distorted_coeffients>
+</opencv_storage>
