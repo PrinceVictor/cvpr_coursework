@@ -25,7 +25,7 @@ int main(int argc, char **argv){
     LOG_OUTPUT("the input Assignment1 image path is  __ {} __", image_path.c_str());
   }
 
-  std::string Camera_A = image_path + "/Camera_A/Mode1";
+  std::string Camera_A = image_path + "/Camera_A/Mode1_temp";
   std::string Camera_B = image_path + "/Camera_B/Mode2";
 
   google::InitGoogleLogging(argv[0]);
@@ -55,10 +55,15 @@ int main(int argc, char **argv){
 
   Calib->show_parameters();
 
+  LOG_OUTPUT("show_project_errors");
+
+  Calib->get_project_error();
+
   LOG_OUTPUT("save_parameters");
 
   std::string para_save = "/home/victor/Darling/course/cvpr/cvpr_coursework/cvpr_coursecode/para";
   std::string para_name = "parameter.xml";
+
   Calib->save_parameters(para_save, para_name);
 
   google::ShutdownGoogleLogging();

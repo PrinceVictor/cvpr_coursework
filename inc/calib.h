@@ -56,6 +56,8 @@ public:
   void save_parameters(const std::string& path,
                        const std::string& name);
 
+  double get_project_error();
+
 private:
 
   std::shared_ptr<std::string> _chessis_board_image_path;
@@ -75,6 +77,8 @@ private:
   cv::Mat _camera_K_matrix;
 
   cv::Mat _distort_coeff;
+
+  std::vector<cv::Mat> _R_list, _T_list;
 
   bool _must_undistort;
 

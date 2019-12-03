@@ -153,6 +153,11 @@ std::vector<std::vector<cv::Point2f>> Calibration::get_chessis_board_corners(){
       _image_corners->emplace_back(image_corners);
       _object_corners->emplace_back(object_corners);
 
+//      for(int i=0; i<image_corners.size(); i++){
+//        LOG_OUTPUT("image x:{} y:{}", image_corners[i].x, image_corners[i].y);
+//        LOG_OUTPUT("object x:{} y:{}", object_corners[i].x, object_corners[i].y);
+//      }
+
     }
 
 //    cv::namedWindow("test1", cv::WINDOW_NORMAL);
@@ -181,15 +186,13 @@ double Calibration::camera_calibrate(){
 
   _must_undistort = true;
 
-  std::vector<cv::Mat> R_list, T_list;
-
   return cv::calibrateCamera(*_object_corners,
                              *_image_corners,
                              *_image_size,
                              _camera_K_matrix,
                              _distort_coeff,
-                             R_list,
-                             T_list);
+                             _R_list,
+                             _T_list);
 }
 
 std::vector<cv::Point3f> Calibration::set_object_corners(const float &delat_x,
@@ -198,7 +201,7 @@ std::vector<cv::Point3f> Calibration::set_object_corners(const float &delat_x,
   for(int i=0; i < _board_size->height; i++){
     for(int j=0; j < _board_size->width; j++){
 
-      object_corners.emplace_back(cv::Point3f(i*delat_y, j*delat_x, 0.0));
+      object_corners.emplace_back(cv::Point3f(j*delat_x, i*delat_y, 0.0));
 
     }
   }
@@ -209,7 +212,9 @@ std::vector<cv::Point3f> Calibration::set_object_corners(const float &delat_x,
 void Calibration::image_undistort(){
 
   if(_image_corners->size() == 0){
+
     LOG_OUTPUT("get none sets of image corners and object corners");
+    return ;
   }
   else{
     LOG_OUTPUT("sets of image corners and object corners {}", _image_corners->size());
@@ -267,30 +272,88 @@ void Calibration::image_undistort(){
 //                  _distort_coeff,
 //                  new_camera_K_matrix);
 
-    cv::namedWindow("raw_image", cv::WINDOW_NORMAL);
-    cv::imshow("raw_image", image);
+//    cv::namedWindow("raw_image", cv::WINDOW_NORMAL);
+//    cv::imshow("raw_image", image);
 
-    cv::namedWindow("undistorted_image", cv::WINDOW_NORMAL);
+//    cv::namedWindow("undistorted_image", cv::WINDOW_NORMAL);
 
-//    cv::Mat roi =undistort_image(*crop_ROI);
-//    undistort_image.copyTo(roi, *crop_ROI);
+////    cv::Mat roi =undistort_image(*crop_ROI);
+////    undistort_image.copyTo(roi, *crop_ROI);
 
-    if(crop_ROI->height && crop_ROI->width){
-      cv::imshow("undistorted_image", undistort_image(*crop_ROI));
-    }
-    else{
-      cv::imshow("undistorted_image", undistort_image);
-    }
+//    if(crop_ROI->height && crop_ROI->width){
+//      cv::imshow("undistorted_image", undistort_image(*crop_ROI));
+//    }
+//    else{
+//      cv::imshow("undistorted_image", undistort_image);
+//    }
 
-      cv::waitKey(0);
+//      cv::waitKey(0);
   }
 
-  cv::destroyAllWindows();
+//  cv::destroyAllWindows();
 
   delete crop_ROI;
 
   return ;
 
+}
+
+double Calibration::get_project_error(){
+
+  if(_image_corners->size() == 0){
+
+    LOG_OUTPUT("get none sets of image corners and object corners");
+    return 0;
+  }
+  else{
+    LOG_OUTPUT("sets of image corners and object corners {}", _image_corners->size());
+  }
+
+  double error_sum = 0;
+
+  LOG_OUTPUT("object corners {}", _object_corners->size());
+
+  for(int i=0; i<_object_corners->size(); i++){
+
+    std::vector<cv::Point2f> projected_image_points;
+
+    cv::projectPoints((*_object_corners)[i],
+                      _R_list[i],
+                      _T_list[i],
+                      _camera_K_matrix,
+                      _distort_coeff,
+//                      cv::Mat(),
+                      projected_image_points);
+
+//    LOG_OUTPUT("--------where---------");
+
+    std::vector<cv::Point2f> temp_image_corners = (*_image_corners)[i];
+
+    cv::Mat temp_image_corners_mat = cv::Mat(1, temp_image_corners.size(), CV_32FC2);
+    cv::Mat projected_image_points_mat = cv::Mat(1, projected_image_points.size(), CV_32FC2);
+
+    for (int j = 0; j < temp_image_corners.size(); j++)
+    {
+      temp_image_corners_mat.at<cv::Vec2f>(0, j) = cv::Vec2f(temp_image_corners[j].x, temp_image_corners[j].y);
+      projected_image_points_mat.at<cv::Vec2f>(0, j) = cv::Vec2f(projected_image_points[j].x, projected_image_points[j].y);
+
+//      LOG_OUTPUT("image x:{} y:{}", temp_image_corners[j].x, temp_image_corners[j].y);
+//      LOG_OUTPUT("object x:{} y:{}", projected_image_points[j].x, projected_image_points[j].y);
+    }
+
+    double err = cv::norm(temp_image_corners_mat, projected_image_points_mat, cv::NORM_L2)/temp_image_corners.size();
+    error_sum = err + error_sum;
+
+    LOG_OUTPUT(" {}'s error: {:.3f}", (*_image_list)[i], err);
+
+  }
+
+  LOG_OUTPUT("Total error: {:.3f}, mean error: {:.3f}",
+             error_sum,
+             error_sum/_image_list->size());
+
+
+  return error_sum;
 }
 
 void Calibration::show_parameters(){
