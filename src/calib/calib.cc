@@ -329,28 +329,37 @@ double Calibration::get_project_error(){
 
     std::vector<cv::Point2f> temp_image_corners = (*_image_corners)[i];
 
-    cv::Mat temp_image_corners_mat = cv::Mat(1, temp_image_corners.size(), CV_32FC2);
-    cv::Mat projected_image_points_mat = cv::Mat(1, projected_image_points.size(), CV_32FC2);
+//    cv::Mat temp_image_corners_mat = cv::Mat(1, temp_image_corners.size(), CV_32FC2);
+//    cv::Mat projected_image_points_mat = cv::Mat(1, projected_image_points.size(), CV_32FC2);
 
+    double temp_error = 0;
     for (int j = 0; j < temp_image_corners.size(); j++)
     {
-      temp_image_corners_mat.at<cv::Vec2f>(0, j) = cv::Vec2f(temp_image_corners[j].x, temp_image_corners[j].y);
-      projected_image_points_mat.at<cv::Vec2f>(0, j) = cv::Vec2f(projected_image_points[j].x, projected_image_points[j].y);
+//      temp_image_corners_mat.at<cv::Vec2f>(0, j) = cv::Vec2f(temp_image_corners[j].x, temp_image_corners[j].y);
+//      projected_image_points_mat.at<cv::Vec2f>(0, j) = cv::Vec2f(projected_image_points[j].x, projected_image_points[j].y);
 
-//      LOG_OUTPUT("image x:{} y:{}", temp_image_corners[j].x, temp_image_corners[j].y);
-//      LOG_OUTPUT("object x:{} y:{}", projected_image_points[j].x, projected_image_points[j].y);
+      double l2_error = 0;
+      l2_error = std::pow(temp_image_corners[j].x - projected_image_points[j].x, 2) +
+          std::pow(temp_image_corners[j].y - projected_image_points[j].y, 2);
+
+      temp_error += l2_error;
+
+//      LOG_OUTPUT("image x:{} y:{} || object x:{} y:{}", temp_image_corners[j].x, temp_image_corners[j].y,
+//                                                        projected_image_points[j].x, projected_image_points[j].y);
+//      LOG_OUTPUT("pixel error {}", l2_error);
     }
 
-    double err = cv::norm(temp_image_corners_mat, projected_image_points_mat, cv::NORM_L2)/temp_image_corners.size();
-    error_sum = err + error_sum;
+//    double err = cv::norm(temp_image_corners_mat, projected_image_points_mat, cv::NORM_L2); ///temp_image_corners.size();
+    temp_error = temp_error / temp_image_corners.size();
+    error_sum = temp_error + error_sum;
 
-    LOG_OUTPUT(" {}'s error: {:.3f}", (*_image_list)[i], err);
-
+    LOG_OUTPUT("{}'s MSE: {:.3f}, RMSE: {:.3f}", (*_image_list)[i], temp_error, std::sqrt(temp_error));
   }
 
-  LOG_OUTPUT("Total error: {:.3f}, mean error: {:.3f}",
+  LOG_OUTPUT("Total MSE: {:.3f}, Mean per image MSE: {:.3f}, Mean per image RMSE: {:.3f}",
              error_sum,
-             error_sum/_image_list->size());
+             error_sum/_image_list->size(),
+             std::sqrt(error_sum/_image_list->size()));
 
 
   return error_sum;
