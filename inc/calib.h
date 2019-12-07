@@ -31,7 +31,8 @@ public:
 
   Calibration();
 
-  Calibration(const std::string& image_path);
+  Calibration(const std::string& image_path,
+              const int& max_length = 10);
 
   ~Calibration();
 
@@ -81,6 +82,14 @@ private:
   std::vector<cv::Mat> _R_list, _T_list;
 
   bool _must_undistort;
+
+  struct errors
+  {
+    double total_mse;
+    double total_rms;
+    double mean_mse;
+    double mean_rms;
+  }errors;
 
 };
 

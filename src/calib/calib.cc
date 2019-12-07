@@ -26,7 +26,8 @@ Calibration::Calibration(){
 
 }
 
-Calibration::Calibration(const std::string& image_path){
+Calibration::Calibration(const std::string& image_path,
+                         const int& max_length){
 
   LOG_OUTPUT("call constructor function!!!"
               "\nthis constructor function do follow task"
@@ -42,7 +43,7 @@ Calibration::Calibration(const std::string& image_path){
   LOG_OUTPUT("it gets the chessis board "
               "image path: __ {} __", image_path.c_str());
 
-  get_images_list();
+  get_images_list(max_length);
 
 }
 
@@ -107,6 +108,9 @@ std::vector<std::vector<cv::Point2f>> Calibration::get_chessis_board_corners(){
   _image_corners = std::make_shared<std::vector<std::vector<cv::Point2f>>>();
   _object_corners = std::make_shared<std::vector<std::vector<cv::Point3f>>>();
 
+  _image_corners->resize(_image_list->size());
+  _object_corners->resize(_image_list->size());
+
   std::vector<cv::Point3f> object_corners = set_object_corners();
 
   std::string head_path = *_chessis_board_image_path;
@@ -115,6 +119,8 @@ std::vector<std::vector<cv::Point2f>> Calibration::get_chessis_board_corners(){
 
   LOG_OUTPUT("image list size {}", _image_list->size());
 
+//omp_set_num_threads(4);
+//#pragma omp parallel for
   for(int i=0; i< _image_list->size(); i++){
 
     std::string full_path = head_path + '/' + (*_image_list)[i];
@@ -137,11 +143,11 @@ std::vector<std::vector<cv::Point2f>> Calibration::get_chessis_board_corners(){
     cv::Mat image_gray;
     cv::cvtColor(image, image_gray, cv::COLOR_BGR2GRAY);
 
-    cv::cornerSubPix(image_gray, image_corners, cv::Size(5, 5), cv::Size(-1, -1),
+    cv::cornerSubPix(image_gray, image_corners, cv::Size(6, 6), cv::Size(-1, -1),
                      cv::TermCriteria(cv::TermCriteria::MAX_ITER +
                                       cv::TermCriteria::EPS,
-                                      30,
-                                      0.1));
+                                      50,
+                                      0.05));
 
     cv::drawChessboardCorners(image, *_board_size, image_corners, is_found);
 //    LOG_OUTPUT("corners size: {}", image_corners.size());
@@ -150,8 +156,8 @@ std::vector<std::vector<cv::Point2f>> Calibration::get_chessis_board_corners(){
 
     if(image_corners.size() == _board_size->area()){
 
-      _image_corners->emplace_back(image_corners);
-      _object_corners->emplace_back(object_corners);
+      (*_image_corners)[i] = image_corners;
+      (*_object_corners)[i] = object_corners;
 
 //      for(int i=0; i<image_corners.size(); i++){
 //        LOG_OUTPUT("image x:{} y:{}", image_corners[i].x, image_corners[i].y);
@@ -167,6 +173,8 @@ std::vector<std::vector<cv::Point2f>> Calibration::get_chessis_board_corners(){
 //    cv::imshow("test2", image_copy);
 
 //    cv::waitKey(0);
+    std::string write_name = "../result/corners/corners_" + (*_image_list)[i];
+    cv::imwrite(write_name, image);
   }
 
 //  cv::destroyAllWindows();
@@ -288,6 +296,8 @@ void Calibration::image_undistort(){
 //    }
 
 //      cv::waitKey(0);
+    std::string write_name = "../result/undistort/undistort_" + it;
+    cv::imwrite(write_name, undistort_image);
   }
 
 //  cv::destroyAllWindows();
@@ -356,11 +366,15 @@ double Calibration::get_project_error(){
     LOG_OUTPUT("{}'s MSE: {:.3f}, RMSE: {:.3f}", (*_image_list)[i], temp_error, std::sqrt(temp_error));
   }
 
-  LOG_OUTPUT("Total MSE: {:.3f}, Mean per image MSE: {:.3f}, Mean per image RMSE: {:.3f}",
-             error_sum,
-             error_sum/_image_list->size(),
-             std::sqrt(error_sum/_image_list->size()));
+  errors.total_mse = error_sum;
+  errors.total_rms = std::sqrt(error_sum);
+  errors.mean_mse = error_sum/_image_list->size();
+  errors.mean_rms = std::sqrt(errors.mean_mse);
 
+  LOG_OUTPUT("Total MSE: {:.3f}, Mean per image MSE: {:.3f}, Mean per image RMSE: {:.3f}",
+             errors.total_mse,
+             errors.mean_mse,
+             errors.mean_rms);
 
   return error_sum;
 }
@@ -404,13 +418,30 @@ void Calibration::save_parameters(const std::string& path,
   std::time_t time_now;
   time_now = std::time(&time_now);
 
-  *_parameter_write << "image_files" << std::asctime(std::localtime(&time_now)) ;
+  *_parameter_write << "Date" << std::asctime(std::localtime(&time_now)) ;
 
-  *_parameter_write << "Date" << *_chessis_board_image_path;
+  *_parameter_write << "path" << *_chessis_board_image_path;
+
+  *_parameter_write << "iamge_files" << "[";
+
+  for(auto it : *_image_list){
+
+    *_parameter_write << it;
+  }
+
+  *_parameter_write << "]";
 
   *_parameter_write << "K_intrinsics_matrix" << _camera_K_matrix
                     << "distorted_coeffients" << _distort_coeff;
 
+  *_parameter_write << "calibrate_errors" << "[";
+
+  *_parameter_write << "{:" << "total_mse" << errors.total_mse
+                    << "total_rms" << errors.total_rms
+                    << "mean_mse" << errors.mean_mse
+                    << "mean_rms" << errors.mean_rms << "}";
+
+  *_parameter_write << "]";
 
   _parameter_write->release();
 

@@ -1,0 +1,30 @@
+<?xml version="1.0"?>
+<opencv_storage>
+<calibrated_parameters_file>Write_by_Hongbin_Zhou</calibrated_parameters_file>
+<Date>"Sat Dec  7 20:14:18 2019&#x0a;"</Date>
+<path>"../../../Assignment1/Camera_B/Model2"</path>
+<iamge_files>
+  GOPR0269.JPG GOPR0241.JPG GOPR0248.JPG GOPR0249.JPG GOPR0274.JPG
+  GOPR0254.JPG GOPR0245.JPG GOPR0258.JPG GOPR0275.JPG GOPR0276.JPG
+  GOPR0251.JPG GOPR0255.JPG GOPR0253.JPG GOPR0260.JPG GOPR0244.JPG</iamge_files>
+<K_intrinsics_matrix type_id="opencv-matrix">
+  <rows>3</rows>
+  <cols>3</cols>
+  <dt>d</dt>
+  <data>
+    1.7453533533684306e+03 0. 2.0435753732429912e+03 0.
+    1.7442765617152847e+03 1.5378561469887602e+03 0. 0. 1.</data></K_intrinsics_matrix>
+<distorted_coeffients type_id="opencv-matrix">
+  <rows>1</rows>
+  <cols>5</cols>
+  <dt>d</dt>
+  <data>
+    -2.8024680066031388e-01 1.7710099800408857e-01
+    1.4464707373194907e-03 -1.5510163980120731e-03
+    -7.3899476365899150e-02</data></distorted_coeffients>
+<calibrate_errors>
+  <_><total_mse>1.1269362245779485e+02</total_mse>
+    <total_rms>1.0615725244079881e+01</total_rms>
+    <mean_mse>7.5129081638529893e+00</mean_mse>
+    <mean_rms>2.7409684718823364e+00</mean_rms></_></calibrate_errors>
+</opencv_storage>
