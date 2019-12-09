@@ -1,0 +1,65 @@
+Log file created at: 2019/12/07 20:20:15
+Running on machine: victor-host
+Log line format: [IWEF]mmdd hh:mm:ss.uuuuuu threadid file:line] msg
+I1207 20:20:15.728871 28539 run_calib.cc:65] main | create calibration class
+I1207 20:20:15.728999 28539 calib.cc:32] Calibration | call constructor function!!!
+this constructor function do follow task
+1.gets the image path and image list
+2.Inilized the parameters
+I1207 20:20:15.729019 28539 calib.cc:454] set_board_size | set board size width 8 height 6
+I1207 20:20:15.729025 28539 calib.cc:43] Calibration | it gets the chessis board image path: __ ../../../Assignment1/Camera_B/Model2 __
+I1207 20:20:15.729086 28539 calib.cc:86] get_images_list | Image List: ||
+I1207 20:20:15.729092 28539 calib.cc:88] get_images_list | __ GOPR0271.JPG __
+I1207 20:20:15.729099 28539 calib.cc:88] get_images_list | __ GOPR0274.JPG __
+I1207 20:20:15.729102 28539 calib.cc:88] get_images_list | __ GOPR0242.JPG __
+I1207 20:20:15.729107 28539 calib.cc:88] get_images_list | __ GOPR0260.JPG __
+I1207 20:20:15.729112 28539 calib.cc:88] get_images_list | __ GOPR0265.JPG __
+I1207 20:20:15.729116 28539 calib.cc:88] get_images_list | __ GOPR0268.JPG __
+I1207 20:20:15.729121 28539 calib.cc:88] get_images_list | __ GOPR0251.JPG __
+I1207 20:20:15.729125 28539 calib.cc:88] get_images_list | __ GOPR0248.JPG __
+I1207 20:20:15.729130 28539 calib.cc:88] get_images_list | __ GOPR0258.JPG __
+I1207 20:20:15.729133 28539 calib.cc:88] get_images_list | __ GOPR0255.JPG __
+I1207 20:20:15.729138 28539 calib.cc:88] get_images_list | __ GOPR0249.JPG __
+I1207 20:20:15.729143 28539 calib.cc:88] get_images_list | __ GOPR0275.JPG __
+I1207 20:20:15.729147 28539 calib.cc:88] get_images_list | __ GOPR0263.JPG __
+I1207 20:20:15.729152 28539 calib.cc:88] get_images_list | __ GOPR0272.JPG __
+I1207 20:20:15.729157 28539 calib.cc:88] get_images_list | __ GOPR0273.JPG __
+I1207 20:20:15.729163 28539 run_calib.cc:70] main | get_chessis_board_corners
+I1207 20:20:15.729182 28539 calib.cc:120] get_chessis_board_corners | image list size 15
+I1207 20:21:10.115777 28539 calib.cc:181] get_chessis_board_corners | image rows 3000, cols 4000, chanl 3, type 16
+I1207 20:21:10.117807 28539 run_calib.cc:74] main | camera_calibrate
+I1207 20:21:10.337582 28539 run_calib.cc:78] main | image_undistort
+I1207 20:21:10.337618 28539 calib.cc:228] image_undistort | sets of image corners and object corners 15
+I1207 20:21:10.353281 28539 calib.cc:262] image_undistort | ROI 2495 3352 321 228
+I1207 20:21:12.944645 28539 run_calib.cc:82] main | show_parameters
+I1207 20:21:12.944671 28539 calib.cc:384] show_parameters | matrix K: 3x3
+I1207 20:21:12.944686 28539 calib.cc:387] show_parameters | matrix K: 1749.87   0.00      2041.56  
+I1207 20:21:12.944692 28539 calib.cc:390] show_parameters |           0.00      1748.40   1538.10  
+I1207 20:21:12.944698 28539 calib.cc:393] show_parameters |           0.00      0.00      1.00     
+I1207 20:21:12.944702 28539 calib.cc:397] show_parameters | distort_coeff: 1x5
+I1207 20:21:12.944707 28539 calib.cc:400] show_parameters | distort_coeff: k1: -0.29
+I1207 20:21:12.944711 28539 calib.cc:401] show_parameters |                k2: 0.17
+I1207 20:21:12.944715 28539 calib.cc:402] show_parameters |                p1: 0.00
+I1207 20:21:12.944720 28539 calib.cc:403] show_parameters |                p2: -0.00
+I1207 20:21:12.944722 28539 calib.cc:404] show_parameters |                p3: -0.02
+I1207 20:21:12.944726 28539 run_calib.cc:86] main | show_project_errors
+I1207 20:21:12.944732 28539 calib.cc:319] get_project_error | sets of image corners and object corners 15
+I1207 20:21:12.944736 28539 calib.cc:324] get_project_error | object corners 15
+I1207 20:21:12.944782 28539 calib.cc:366] get_project_error | GOPR0271.JPG's MSE: 1.914, RMSE: 1.384
+I1207 20:21:12.944794 28539 calib.cc:366] get_project_error | GOPR0274.JPG's MSE: 14.428, RMSE: 3.798
+I1207 20:21:12.944806 28539 calib.cc:366] get_project_error | GOPR0242.JPG's MSE: 9.898, RMSE: 3.146
+I1207 20:21:12.944816 28539 calib.cc:366] get_project_error | GOPR0260.JPG's MSE: 7.862, RMSE: 2.804
+I1207 20:21:12.944828 28539 calib.cc:366] get_project_error | GOPR0265.JPG's MSE: 4.451, RMSE: 2.110
+I1207 20:21:12.944839 28539 calib.cc:366] get_project_error | GOPR0268.JPG's MSE: 3.225, RMSE: 1.796
+I1207 20:21:12.944849 28539 calib.cc:366] get_project_error | GOPR0251.JPG's MSE: 6.880, RMSE: 2.623
+I1207 20:21:12.944859 28539 calib.cc:366] get_project_error | GOPR0248.JPG's MSE: 1.574, RMSE: 1.255
+I1207 20:21:12.944869 28539 calib.cc:366] get_project_error | GOPR0258.JPG's MSE: 2.121, RMSE: 1.456
+I1207 20:21:12.944878 28539 calib.cc:366] get_project_error | GOPR0255.JPG's MSE: 8.556, RMSE: 2.925
+I1207 20:21:12.944890 28539 calib.cc:366] get_project_error | GOPR0249.JPG's MSE: 4.187, RMSE: 2.046
+I1207 20:21:12.944900 28539 calib.cc:366] get_project_error | GOPR0275.JPG's MSE: 1.831, RMSE: 1.353
+I1207 20:21:12.944909 28539 calib.cc:366] get_project_error | GOPR0263.JPG's MSE: 0.521, RMSE: 0.722
+I1207 20:21:12.944919 28539 calib.cc:366] get_project_error | GOPR0272.JPG's MSE: 6.493, RMSE: 2.548
+I1207 20:21:12.944929 28539 calib.cc:366] get_project_error | GOPR0273.JPG's MSE: 14.325, RMSE: 3.785
+I1207 20:21:12.944936 28539 calib.cc:374] get_project_error | Total MSE: 88.267, Mean per image MSE: 5.884, Mean per image RMSE: 2.426
+I1207 20:21:12.944938 28539 run_calib.cc:90] main | save_parameters
+I1207 20:21:12.945082 28539 calib.cc:448] save_parameters | write parameters in to ../para/para_camB_159.xml
