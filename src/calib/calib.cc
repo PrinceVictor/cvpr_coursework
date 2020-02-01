@@ -280,22 +280,22 @@ void Calibration::image_undistort(){
 //                  _distort_coeff,
 //                  new_camera_K_matrix);
 
-//    cv::namedWindow("raw_image", cv::WINDOW_NORMAL);
-//    cv::imshow("raw_image", image);
+    cv::namedWindow("raw_image", cv::WINDOW_NORMAL);
+    cv::imshow("raw_image", image);
 
-//    cv::namedWindow("undistorted_image", cv::WINDOW_NORMAL);
+    cv::namedWindow("undistorted_image", cv::WINDOW_NORMAL);
 
-////    cv::Mat roi =undistort_image(*crop_ROI);
-////    undistort_image.copyTo(roi, *crop_ROI);
+//    cv::Mat roi =undistort_image(*crop_ROI);
+//    undistort_image.copyTo(roi, *crop_ROI);
 
 //    if(crop_ROI->height && crop_ROI->width){
 //      cv::imshow("undistorted_image", undistort_image(*crop_ROI));
 //    }
 //    else{
-//      cv::imshow("undistorted_image", undistort_image);
+      cv::imshow("undistorted_image", undistort_image);
 //    }
+    cv::waitKey(0);
 
-//      cv::waitKey(0);
     std::string write_name = "../result/undistort/undistort_" + it;
     cv::imwrite(write_name, undistort_image);
   }
