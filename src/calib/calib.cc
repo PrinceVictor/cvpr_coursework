@@ -174,7 +174,7 @@ std::vector<std::vector<cv::Point2f>> Calibration::get_chessis_board_corners(){
 
 //    cv::waitKey(0);
     std::string write_name = "../result/corners/corners_" + (*_image_list)[i];
-    cv::imwrite(write_name, image);
+//    cv::imwrite(write_name, image);
   }
 
 //  cv::destroyAllWindows();
@@ -297,7 +297,7 @@ void Calibration::image_undistort(){
     cv::waitKey(0);
 
     std::string write_name = "../result/undistort/undistort_" + it;
-    cv::imwrite(write_name, undistort_image);
+//    cv::imwrite(write_name, undistort_image);
   }
 
 //  cv::destroyAllWindows();

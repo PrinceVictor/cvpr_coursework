@@ -1,0 +1,4 @@
+Log file created at: 2019/12/07 18:24:38
+Running on machine: victor-host
+Log line format: [IWEF]mmdd hh:mm:ss.uuuuuu threadid file:line] msg
+I1207 18:24:38.837278 22951 run_calib.cc:65] main | create calibration class
