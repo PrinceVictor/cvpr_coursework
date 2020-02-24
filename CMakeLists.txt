@@ -27,11 +27,26 @@ endif()
 #FIND_PACKAGE(Glog REQUIRED)
 #INCLUDE_DIRECTORIES(${GLOG_INCLUDE_DIRS})
 
-set(SRC_PATH src/calib)
-set(INC_PATH inc)
-ADD_SUBDIRECTORY(${SRC_PATH})
+#set(SRC_PATH src)
+#ADD_SUBDIRECTORY(${SRC_PATH})
 
-#ADD_LIBRARY(cvpr SHARED ${LIBCVPR_SRC})
+set(INC_PATH inc)
 INCLUDE_DIRECTORIES(${INC_PATH})
-add_executable(camera_calib ${SRC_PATH}/run_calib.cc ${SRC_PATH}/calib.cc)
-target_link_libraries(camera_calib ${OpenCV_LIBS} glog fmt::fmt)
+
+AUX_SOURCE_DIRECTORY(src/calib calib_SRC)
+SET(Calib_LIBS ${Boost_LIBRARIES}
+               ${OpenCV_LIBS}
+               glog
+               fmt::fmt)
+
+AUX_SOURCE_DIRECTORY(src/KLT KLT_SRC)
+SET(KLT_LIBS ${Boost_LIBRARIES}
+             ${OpenCV_LIBS}
+             glog
+             fmt::fmt)
+
+add_executable(camera_calib ${calib_SRC})
+target_link_libraries(camera_calib ${Calib_LIBS})
+
+add_executable(klt_node ${KLT_SRC})
+target_link_libraries(klt_node ${KLT_LIBS})
