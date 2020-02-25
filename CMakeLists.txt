@@ -45,8 +45,17 @@ SET(KLT_LIBS ${Boost_LIBRARIES}
              glog
              fmt::fmt)
 
+AUX_SOURCE_DIRECTORY(src/laneline_detect laneline_SRC)
+SET(laneline_LIBS ${Boost_LIBRARIES}
+                  ${OpenCV_LIBS}
+                  glog
+                  fmt::fmt)
+
 add_executable(camera_calib ${calib_SRC})
 target_link_libraries(camera_calib ${Calib_LIBS})
 
 add_executable(klt_node ${KLT_SRC})
 target_link_libraries(klt_node ${KLT_LIBS})
+
+add_executable(laneline ${laneline_SRC})
+target_link_libraries(laneline ${laneline_LIBS})
