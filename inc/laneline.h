@@ -35,12 +35,10 @@ public:
     Mat deNoise(Mat inputImage);  // 对输入图像应用高斯模糊
     Mat edgeDetector(Mat img_noise);  // 过滤图像，只获取边缘
     Mat mask(Mat img_edges);  // 掩盖边缘图像，只关心ROI
-    void streetSign(Mat img_original);//路牌检测
     std::vector<Vec4i> houghLines(Mat img_mask);  // 检测蒙面边缘图像中的霍夫线
     std::vector<std::vector<Vec4i> > lineSeparation(std::vector<Vec4i> lines, Mat img_edges);  // Sprt通过直线的斜率检测出左右直线
     std::vector<Point> regression(std::vector<std::vector<Vec4i> > left_right_lines, Mat inputImage);  //每条车道只能排一条线
-    std::string predictTurn();  //通过计算消失点的位置来确定车道是否在转弯
-    int plotLane(Mat inputImage, std::vector<Point> lane, std::string turn);  //绘制合成车道并在框架中进行转弯预测。
+
 };
 
 

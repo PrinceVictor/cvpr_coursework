@@ -21,12 +21,14 @@ void LaneDetector::doDetection(String path){
   Mat img_denoise;
   Mat img_edges;
   Mat img_mask;
-  Mat img_lines;
   std::vector<cv::Vec4i> lines;
   std::vector<std::vector<cv::Vec4i> > left_right_lines;
   std::vector<cv::Point> lane;
-  std::string turn;
-  int flag_plot = -1;
+
+  cv::namedWindow("Gaussion");
+  cv::namedWindow("edge_detect");
+  cv::namedWindow("ROI");
+  cv::namedWindow("laneline_result");
 
   for(auto it : image_list){
 
@@ -62,7 +64,7 @@ void LaneDetector::doDetection(String path){
       draw_lines(frame, lane[0], lane[1]);
       draw_lines(frame, lane[2], lane[3]);
 
-      imshow("lane_lines", frame);
+      imshow("laneline_result", frame);
 
     }
 
@@ -99,80 +101,6 @@ std::vector<std::string> LaneDetector::get_images_list(std::string path){
   return list;
 }
 
-//路牌检测
-void LaneDetector::streetSign(Mat img_original){
-  Mat hsv;
-  cvtColor(img_original, hsv, COLOR_BGR2HSV); //直接转换#HSV颜色空间
-  //    imshow("颜色空间",hsv);
-
-  //掩码
-  Mat mask1;
-  inRange(hsv, Scalar(155,60,60), Scalar(180,255,255), mask1);
-  Mat mask2;
-  inRange(hsv, Scalar(97,80,45), Scalar(124,255,255), mask2);
-  Mat mask = mask1 + mask2;
-  GaussianBlur(mask, mask,Size(5, 5), 3, 3);//高斯模糊
-  //    imshow("mask",mask);
-
-  //二值化
-  Mat binary;
-  threshold(mask, binary,127, 255, THRESH_BINARY );//二值化
-  //    imshow("二值化",binary);
-
-  //定义核
-  Mat kernel = getStructuringElement(MORPH_RECT,Size(21,7));
-  //进行形态学操作
-  Mat closed;
-  morphologyEx(binary,closed, MORPH_CLOSE, kernel);
-  //    imshow("进行形态学操作",closed);
-
-  Mat img_erode,img_dilate;
-  erode(closed,img_erode, NULL, Point(-1, -1), 4);//腐蚀
-  dilate(img_erode,img_dilate, NULL, Point(-1, -1), 4);//膨胀
-  //    imshow("腐蚀-膨胀",img_dilate);
-
-
-  std::vector<std::vector<Point>> contours;
-  std::vector<Vec4i> hierarchy;        //分层
-  findContours(img_dilate, contours, hierarchy, RETR_EXTERNAL, CHAIN_APPROX_SIMPLE, Point(0, 0));//寻找轮廓
-  //    cout << contours.size() << endl;
-
-
-  for (int i = 0; i < contours.size(); i++){
-    double area = contourArea(Mat(contours[i]),false);
-    if(area > 0.055*576*324 || area <0.0012*576*324)
-      continue;
-
-    //变换为旋转矩阵
-    RotatedRect rect=minAreaRect(Mat(contours[i]));
-    //定义一个存储以上四个点的坐标的变量
-    Point2f fourPoint2f[4];
-    //将rectPoint变量中存储的坐标值放到 fourPoint的数组中
-    rect.points(fourPoint2f);
-    double x,y,width,height;
-    x = y = width = height = 0;
-    x = fourPoint2f[1].x;
-    y = fourPoint2f[1].y;
-    width = fabs(fourPoint2f[0].x - fourPoint2f[3].x);
-    height = fabs(fourPoint2f[0].y - fourPoint2f[1].y);
-
-
-    if(width/height>1.2 && width/height<2.5){  //根据矩形的长宽比  圈出标志牌
-      //根据得到的四个点的坐标  绘制矩形
-      Scalar color = (0, 0, 255);//蓝色线画轮廓
-      for (int i = 0; i < 3; i++) {
-        line(img_original, fourPoint2f[i], fourPoint2f[i + 1], color, 3);
-      }
-      line(img_original, fourPoint2f[3], fourPoint2f[0], color, 3);
-
-      //显示裁剪后的图片
-      if(x>50 && y>50 && width >50 && height >20){
-        Mat roi = img_original(Rect(x,y,width,height));
-        imshow("traffic_sign",roi);
-      }
-    }
-  }
-}
 
 // 图像模糊
 /**
@@ -233,27 +161,11 @@ Mat LaneDetector::mask(Mat img_edges) {
   Mat mask = Mat::zeros(img_edges.size(), img_edges.type());
   Point pts[4] = {
 
-    //        Point(80,368),    //左下角
-    //        Point(120,280),   //左上角
-    //        Point(600,280),
-    //        Point(800,368)    //右下角
-
-
     Point(0,324),    //左下角
     Point(170,200),   //左上角
     Point(400,200),
     Point(572,324)    //右下角
 
-
-    //        Point(-60,368),    //左下角
-    //        Point(80,220),   //左上角
-    //        Point(450,220),
-    //        Point(600,368)    //右下角
-
-    //         Point(-90,368),    //左下角
-    //         Point(40,235),   //左上角
-    //         Point(350,235),
-    //         Point(650,368)    //右下角
   };
 
   // 创建一个二元多边形掩模
@@ -410,65 +322,5 @@ std::vector<Point> LaneDetector::regression(std::vector<std::vector<Vec4i> > lef
 
   return output;
 }
-
-// 预测
-/**
-*@brief预测车道是左转、右转还是直走
-*@brief通过查看消失点相对于图像中心的位置来完成
-*@return字符串，表示是否有左或右转弯或道路是否笔直
-*/
-std::string LaneDetector::predictTurn() {
-  std::string output;
-  double vanish_x;
-  double thr_vp = 10;
-
-  // 消失点是两个车道边界线相交的点
-  vanish_x = static_cast<double>(((right_m*right_b.x) - (left_m*left_b.x) - right_b.y + left_b.y) / (right_m - left_m));
-
-  // 消失点的位置决定了道路转弯的位置
-  if (vanish_x < (img_center - thr_vp))
-    output = "Left Turn";
-  else if (vanish_x >(img_center + thr_vp))
-    output = "Right Turn";
-  else if (vanish_x >= (img_center - thr_vp) && vanish_x <= (img_center + thr_vp))
-    output = "Straight";
-
-  return output;
-}
-
-//绘制结果
-/**
-*@brief该函数绘制车道两侧、转弯预测信息和覆盖车道边界内区域的透明多边形
-*@param inputImage是原始捕获帧
-*@param lane是包含两条直线信息的向量
-*@param turn是包含转弯信息的输出字符串
-*@return函数返回0
-*/
-int LaneDetector::plotLane(Mat inputImage, std::vector<Point> lane, std::string turn) {
-  std::vector<Point> poly_points;
-  Mat output;
-
-  // 创建透明多边形，以便更好地显示车道
-  inputImage.copyTo(output);
-  poly_points.push_back(lane[2]);
-  poly_points.push_back(lane[0]);
-  poly_points.push_back(lane[1]);
-  poly_points.push_back(lane[3]);
-  fillConvexPoly(output, poly_points, Scalar(255, 0, 0), LINE_AA, 0);
-  addWeighted(output, 0.3, inputImage, 1.0 - 0.3, 0, inputImage);
-
-  // 绘制车道边界的两条线
-  /*   line(inputImage, lane[0], lane[1], Scalar(0, 0, 255), 5, CV_AA);
-    line(inputImage, lane[2], lane[3], Scalar(0, 0, 255), 5, CV_AA);*/
-
-  // 绘制转弯信息
-  //    putText(inputImage, turn, Point(50, 90), FONT_HERSHEY_COMPLEX_SMALL, 3, cvScalar(0, 255, 0), 1, CV_AA);
-
-  // 显示最终输出图像
-  namedWindow("Lane", WINDOW_AUTOSIZE);
-  imshow("Lane", inputImage);
-  return 0;
-}
-
 
 }
