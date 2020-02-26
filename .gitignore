@@ -10,4 +10,8 @@ log/
 #para
 para/
 
+#video
 video/
+
+#lane_image
+lane_image/
