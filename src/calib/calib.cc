@@ -10,7 +10,7 @@
 #include <dirent.h>
 
 #include <opencv2/opencv.hpp>
-#include <Eigen/Eigen>
+//#include <Eigen/Eigen>
 
 #include <log.h>
 #include <calib.h>
